@@ -1,2 +1,3 @@
-# A-Spider-Of-Lottery-Ticket
-A Spider Of Lottery Ticket
+# 一个用来爬取河南22选5彩票数据的小小小爬虫
+## 年轻人的第一个爬虫[doge]
+
