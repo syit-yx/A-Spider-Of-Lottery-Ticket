@@ -1,0 +1,89 @@
+#  coding:utf-8
+from bs4 import BeautifulSoup
+import re
+import urllib.request, urllib.error
+import xlwt
+import os
+
+def main():
+    baseurl = 'https://kaijiang.500.com/shtml/zyeexw/'
+    da = input("查询哪一年(仅支持近十年)：")
+    dic = {'2020': '313',
+           '2019': '351',
+           '2018': '358',
+           '2017': '358',
+           '2016': '359',
+           '2015': '358',
+           '2014': '357',
+           '2013': '358',
+           '2012': '359',
+           '2011': '358',
+           '2010': '358'
+           }
+    if da == '2021':
+        qi = input('请输入最新一期的期号(三位数):')
+    else :
+        qi = dic[da]
+    # print(qi)
+    data = getData(baseurl,da,qi)
+    saveData(data,da)
+    print('已保存，文件名为：'+da+'.xls')
+    os.system('pause')
+
+def askURL(url):
+    head = {
+        'User-Agent': 'Mozilla / 5.0(WindowsNT10.0;Win64;x64) AppleWebKit / 537.36(KHTML, likeGecko) Chrome / 89.0.4389.72Safari / 537.36Edg / 89.0.774.45'
+    }
+    request = urllib.request.Request(url, headers=head)
+    response = urllib.request.urlopen(request)
+    try:
+        h = response.read().decode('GBK')
+        return h
+    except UnicodeDecodeError:
+        print('字符编码有错误UnicodeDecodeError')
+        return ''
+
+# 这里已经爬到网页了
+
+findnum = re.compile(r'<li class="ball_orange">(.*?)</li>')
+
+def getData(baseurl,d,q):
+    alllist = []
+    start = int(d + '001')
+    end = int(d + q)
+    for i in range(start,end+1):
+        qi = []
+        i = str(i)
+        url = baseurl + i + '.shtml'
+        qi = '第' + i + '期'
+        datelist = [qi]
+        try:
+            html = askURL(url)
+        except Exception:
+            print("出现错误")
+            html = ''
+        if html :
+            soup = BeautifulSoup(html, "html.parser")
+            for im in soup.find_all('li', class_="ball_orange"):
+                im = str(im)
+                # if im:
+                #     print(im)
+                num = re.findall(findnum,im)[0]
+                datelist.append(num)
+        else:
+            datelist = datelist + ['','','','','']
+        alllist.append(datelist)
+        print('读取到',i)
+    return alllist
+
+def saveData(data,d):
+    book = xlwt.Workbook(encoding='GBK')
+    sheet = book.add_sheet('sheet1', cell_overwrite_ok=True)
+    for i in range(0, len(data)):
+        for j in range(0, 6):
+            sheet.write(i, j, data[i][j])
+
+    book.save(d+'.xls')
+    
+if __name__ == '__main__':
+    main()
